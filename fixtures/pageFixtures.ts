@@ -1,29 +1,36 @@
 import { test as base } from '@playwright/test';
 import dotenv from 'dotenv';
-import { AccountPage } from '../pages/AccountPage';
-import { AdminCustomerPage } from '../pages/AdminCustomerPage';
-import { AdminCustomersPage } from '../pages/AdminCustomersPage';
-import { AdminLoginPage } from '../pages/AdminLoginPage';
-import { CartPage } from '../pages/CartPage';
+
 import { HomePage } from '../pages/HomePage';
-import { LoginPage } from '../pages/LoginPage';
-import { ProductPage } from '../pages/ProductPage';
 import { RegisterPage } from '../pages/RegisterPage';
+import { LoginPage } from '../pages/LoginPage';
+import { MyAccountPage } from '../pages/MyAccountPage';
+import { SuccessPage } from '../pages/SuccessPage';
+import { LogoutPage } from '../pages/LogoutPage';
+import { SearchResultsPage } from '../pages/SearchResultsPage';
+import { ProductPage } from '../pages/ProductPage';
+import { CartPage } from '../pages/CartPage';
+import { AdminLoginPage } from '../pages/AdminLoginPage';
+import { AdminCustomersPage } from '../pages/AdminCustomersPage';
+import { AdminCustomerEditPage } from '../pages/AdminCustomerEditPage';
 
 dotenv.config();
 
-const APP_URL = process.env.WEB_APP_URL ?? 'http://localhost/opencart/upload/';
+const APP_URL = process.env.WEB_APP_URL || 'http://localhost/opencart/upload/';
 
 type PageFixtures = {
     homePage: HomePage;
     registerPage: RegisterPage;
     loginPage: LoginPage;
-    accountPage: AccountPage;
+    myAccountPage: MyAccountPage;
+    successPage: SuccessPage;
+    logoutPage: LogoutPage;
+    searchResultsPage: SearchResultsPage;
     productPage: ProductPage;
     cartPage: CartPage;
     adminLoginPage: AdminLoginPage;
     adminCustomersPage: AdminCustomersPage;
-    adminCustomerPage: AdminCustomerPage;
+    adminCustomerEditPage: AdminCustomerEditPage;
 };
 
 export const test = base.extend<PageFixtures>({
@@ -37,8 +44,17 @@ export const test = base.extend<PageFixtures>({
     loginPage: async ({ page }, use) => {
         await use(new LoginPage(page));
     },
-    accountPage: async ({ page }, use) => {
-        await use(new AccountPage(page));
+    myAccountPage: async ({ page }, use) => {
+        await use(new MyAccountPage(page));
+    },
+    successPage: async ({ page }, use) => {
+        await use(new SuccessPage(page));
+    },
+    logoutPage: async ({ page }, use) => {
+        await use(new LogoutPage(page));
+    },
+    searchResultsPage: async ({ page }, use) => {
+        await use(new SearchResultsPage(page));
     },
     productPage: async ({ page }, use) => {
         await use(new ProductPage(page));
@@ -52,18 +68,9 @@ export const test = base.extend<PageFixtures>({
     adminCustomersPage: async ({ page }, use) => {
         await use(new AdminCustomersPage(page));
     },
-    adminCustomerPage: async ({ page }, use) => {
-        await use(new AdminCustomerPage(page));
+    adminCustomerEditPage: async ({ page }, use) => {
+        await use(new AdminCustomerEditPage(page));
     },
-});
-
-test.afterEach(async ({ page, context }) => {
-    if (!page.isClosed()) {
-        await page.close();
-    }
-    if (context.pages().some((openPage) => !openPage.isClosed())) {
-        await context.close();
-    }
 });
 
 export { expect } from '@playwright/test';

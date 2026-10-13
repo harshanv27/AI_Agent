@@ -4,30 +4,30 @@ export class ProductPage {
     private readonly page: Page;
 
     // Locators
-    private readonly heading: Locator;
-    private readonly priceNew: Locator;
-    private readonly txtQuantity: Locator;
-    private readonly btnAddToCart: Locator;
-    private readonly successAlert: Locator;
+    private readonly productHeading: Locator;
+    private readonly addToCartButton: Locator;
+    private readonly quantityInput: Locator;
+    private readonly priceText: Locator;
+    private readonly successMessage: Locator;
 
     constructor(page: Page) {
         this.page = page;
 
-        // Initialize locators with CSS selectors
-        this.heading = page.locator('#content h1');
-        this.priceNew = page.locator('#content .price-new');
-        this.txtQuantity = page.locator('#input-quantity');
-        this.btnAddToCart = page.locator('#button-cart');
-        this.successAlert = page.locator('.alert-success');
+        // Initialize locators
+        this.productHeading = page.locator('#content h1');
+        this.addToCartButton = page.getByRole('button', { name: 'Add to Cart' });
+        this.quantityInput = page.locator('#input-quantity');
+        this.priceText = page.locator('h2');
+        this.successMessage = page.locator('.alert-success');
     }
 
     /**
-     * Verifies the product details page is displayed
-     * @returns Promise<boolean> - true if the Add to Cart button is visible
+     * Checks if the product details page is displayed
+     * @returns Promise<boolean> - true if the product heading is visible
      */
     async isProductPageExists(): Promise<boolean> {
         try {
-            return await this.btnAddToCart.isVisible();
+            return await this.productHeading.isVisible();
         } catch (error) {
             console.log(`Error checking product page: ${error}`);
             return false;
@@ -35,60 +35,56 @@ export class ProductPage {
     }
 
     /**
-     * Gets the product name from the details page
-     * @returns Promise<string> - Product name
+     * Gets the product name from the heading
+     * @returns Promise<string> - The product name
      */
     async getProductName(): Promise<string> {
-        return (await this.heading.first().innerText()).trim();
+        return await this.productHeading.textContent() ?? '';
     }
 
     /**
-     * Gets the product price from the details page
-     * @returns Promise<string> - Product price
+     * Gets the product price text
+     * @returns Promise<string> - The price text
      */
     async getProductPrice(): Promise<string> {
-        return (await this.priceNew.first().innerText()).trim();
+        return await this.priceText.first().textContent() ?? '';
     }
 
     /**
-     * Sets the product quantity
-     * @param quantity - Quantity to add to the cart
+     * Sets the quantity for the product
+     * @param quantity - Quantity value
      */
     async setQuantity(quantity: string): Promise<void> {
-        await this.txtQuantity.fill(quantity);
+        await this.quantityInput.clear();
+        await this.quantityInput.fill(quantity);
     }
 
     /**
-     * Adds the product to the shopping cart
+     * Clicks the Add to Cart button
      */
-    async addToCart(): Promise<void> {
-        try {
-            await this.btnAddToCart.click();
-            await this.successAlert.first().waitFor({ state: 'visible' });
-        } catch (error) {
-            console.log(`Error adding product to cart: ${error}`);
-            throw error;
-        }
+    async clickAddToCart(): Promise<void> {
+        await this.addToCartButton.click();
     }
 
     /**
-     * Verifies the product-added confirmation message is displayed
-     * @returns Promise<boolean> - true if the success alert is visible
+     * Gets the success message text after adding to cart
+     * @returns Promise<string> - The success message text
      */
-    async isProductAddedMessageDisplayed(): Promise<boolean> {
+    async getSuccessMessage(): Promise<string> {
+        return await this.successMessage.textContent() ?? '';
+    }
+
+    /**
+     * Checks if the success message is visible
+     * @returns Promise<boolean> - true if success message is displayed
+     */
+    async isSuccessMessageVisible(): Promise<boolean> {
         try {
-            return await this.successAlert.first().isVisible();
+            await this.successMessage.waitFor({ state: 'visible', timeout: 5000 });
+            return true;
         } catch (error) {
-            console.log(`Error checking product-added message: ${error}`);
+            console.log(`Error checking success message: ${error}`);
             return false;
         }
-    }
-
-    /**
-     * Gets the product-added confirmation message text
-     * @returns Promise<string> - Success message text
-     */
-    async getAddedMessage(): Promise<string> {
-        return (await this.successAlert.first().innerText()).trim();
     }
 }

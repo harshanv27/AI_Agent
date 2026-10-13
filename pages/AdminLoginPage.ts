@@ -4,34 +4,28 @@ export class AdminLoginPage {
     private readonly page: Page;
 
     // Locators
-    private readonly txtUsername: Locator;
-    private readonly txtPassword: Locator;
-    private readonly btnLogin: Locator;
+    private readonly usernameInput: Locator;
+    private readonly passwordInput: Locator;
+    private readonly loginButton: Locator;
+    private readonly loginHeading: Locator;
 
     constructor(page: Page) {
         this.page = page;
 
-        // Initialize locators with CSS selectors
-        this.txtUsername = page.locator('#input-username');
-        this.txtPassword = page.locator('#input-password');
-        this.btnLogin = page.getByRole('button', { name: 'Login' });
+        // Initialize locators
+        this.usernameInput = page.locator('#input-username');
+        this.passwordInput = page.locator('#input-password');
+        this.loginButton = page.getByRole('button', { name: 'Login' });
+        this.loginHeading = page.getByRole('heading', { name: 'Please enter your login details.' });
     }
 
     /**
-     * Navigates to the OpenCart admin portal login page
+     * Checks if the Admin login page is displayed
+     * @returns Promise<boolean> - true if the login heading is visible
      */
-    async goto(): Promise<void> {
-        const baseUrl = process.env.WEB_APP_URL ?? 'http://localhost/opencart/upload/';
-        await this.page.goto(`${baseUrl}admin/index.php`);
-    }
-
-    /**
-     * Verifies the admin login page is displayed
-     * @returns Promise<boolean> - true if the username field is visible
-     */
-    async isLoginPageExists(): Promise<boolean> {
+    async isAdminLoginPageExists(): Promise<boolean> {
         try {
-            return await this.txtUsername.isVisible();
+            return await this.loginHeading.isVisible();
         } catch (error) {
             console.log(`Error checking admin login page: ${error}`);
             return false;
@@ -39,35 +33,36 @@ export class AdminLoginPage {
     }
 
     /**
-     * Enters the administrator username
-     * @param username - Administrator username
+     * Sets the Username field
+     * @param username - Admin username
      */
     async setUsername(username: string): Promise<void> {
-        await this.txtUsername.fill(username);
+        await this.usernameInput.fill(username);
     }
 
     /**
-     * Enters the administrator password
-     * @param password - Administrator password
+     * Sets the Password field
+     * @param password - Admin password
      */
     async setPassword(password: string): Promise<void> {
-        await this.txtPassword.fill(password);
+        await this.passwordInput.fill(password);
     }
 
     /**
-     * Logs in to the admin portal with the given credentials
-     * @param username - Administrator username
-     * @param password - Administrator password
+     * Clicks the Login button
+     */
+    async clickLogin(): Promise<void> {
+        await this.loginButton.click();
+    }
+
+    /**
+     * Performs a complete admin login action
+     * @param username - Admin username
+     * @param password - Admin password
      */
     async login(username: string, password: string): Promise<void> {
-        try {
-            await this.setUsername(username);
-            await this.setPassword(password);
-            await this.btnLogin.click();
-            await this.page.waitForURL('**route=common/dashboard**');
-        } catch (error) {
-            console.log(`Error logging into admin portal: ${error}`);
-            throw error;
-        }
+        await this.setUsername(username);
+        await this.setPassword(password);
+        await this.clickLogin();
     }
 }

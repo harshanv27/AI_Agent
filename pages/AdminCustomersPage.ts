@@ -1,75 +1,143 @@
 import { Page, Locator } from '@playwright/test';
-import { AdminCustomerPage } from './AdminCustomerPage';
 
 export class AdminCustomersPage {
     private readonly page: Page;
 
     // Locators
-    private readonly customerRows: Locator;
+    private readonly customersMenu: Locator;
+    private readonly customersHeading: Locator;
+    private readonly filterEmailInput: Locator;
+    private readonly filterButton: Locator;
+    private readonly customersTable: Locator;
+    private readonly noResultsAlert: Locator;
+    private readonly securityModal: Locator;
+    private readonly securityModalClose: Locator;
 
     constructor(page: Page) {
         this.page = page;
 
-        // Initialize locators with CSS selectors
-        this.customerRows = page.locator('#content table tbody tr');
+        // Initialize locators
+        this.customersMenu = page.locator('#menu-customer');
+        this.customersHeading = page.getByRole('heading', { name: 'Customers' });
+        this.filterEmailInput = page.locator('#input-email');
+        this.filterButton = page.locator('#button-filter');
+        this.customersTable = page.locator('#form-customer table');
+        this.noResultsAlert = page.locator('.alert-danger');
+        this.securityModal = page.locator('#modal-security');
+        this.securityModalClose = this.securityModal.locator('button.close');
     }
 
     /**
-     * Navigates to the Customers list in the admin portal
+     * Dismisses the developer security modal (storage directory warning)
+     * that appears on the admin dashboard after login, when present
      */
-    async gotoCustomers(): Promise<void> {
-        const url = new URL(this.page.url());
-        url.searchParams.set('route', 'customer/customer');
-        url.searchParams.delete('filter_email');
-        await this.page.goto(url.toString());
-    }
-
-    /**
-     * Searches the Customers list for the given email address
-     * @param email - Customer email address to search for
-     */
-    async searchCustomer(email: string): Promise<void> {
-        const url = new URL(this.page.url());
-        url.searchParams.set('route', 'customer/customer');
-        url.searchParams.set('filter_email', email);
-        await this.page.goto(url.toString());
-    }
-
-    /**
-     * Verifies a customer with the given email is listed
-     * @param email - Customer email address to look for
-     * @returns Promise<boolean> - true if the customer is listed
-     */
-    async isCustomerExists(email: string): Promise<boolean> {
+    async dismissSecurityModal(): Promise<void> {
         try {
-            const count = await this.customerRows.count();
-            for (let i = 0; i < count; i++) {
-                const rowText = await this.customerRows.nth(i).innerText();
-                if (rowText.includes(email)) {
-                    return true;
-                }
+            if (await this.securityModal.isVisible()) {
+                await this.securityModalClose.click();
+                console.log('Dismissed the admin security modal');
             }
-            return false;
         } catch (error) {
-            console.log(`Error checking customer '${email}' in admin: ${error}`);
+            console.log(`Error dismissing security modal: ${error}`);
+        }
+    }
+
+    /**
+     * Clicks the Customers menu in the admin navigation to expand it
+     */
+    async clickCustomersMenu(): Promise<void> {
+        await this.customersMenu.click();
+    }
+
+    /**
+     * Clicks the Customers submenu link to open the customer list page
+     */
+    async clickCustomersSubmenu(): Promise<void> {
+        await this.page.locator('#collapse5').getByRole('link', { name: 'Customers' }).click();
+    }
+
+    /**
+     * Checks if the Customers list page is displayed
+     * @returns Promise<boolean> - true if the heading is visible
+     */
+    async isCustomersPageExists(): Promise<boolean> {
+        try {
+            return await this.customersHeading.isVisible();
+        } catch (error) {
+            console.log(`Error checking customers page: ${error}`);
             return false;
         }
     }
 
     /**
-     * Opens the customer record with the given email
-     * @param email - Customer email address to open
-     * @returns Promise<AdminCustomerPage> - Instance of the admin customer page
+     * Fills the E-Mail filter field
+     * @param email - The email to search for
      */
-    async openCustomer(email: string): Promise<AdminCustomerPage> {
+    async setFilterEmail(email: string): Promise<void> {
+        await this.filterEmailInput.fill(email);
+    }
+
+    /**
+     * Clicks the Filter button to apply the search
+     */
+    async clickFilterButton(): Promise<void> {
+        await this.filterButton.click();
+    }
+
+    /**
+     * Searches for a customer by email address
+     * @param email - The email to search for
+     */
+    async searchCustomerByEmail(email: string): Promise<void> {
+        await this.setFilterEmail(email);
+        await this.clickFilterButton();
+    }
+
+    /**
+     * Checks if a customer row exists for the given email
+     * @param email - The email to look for in the table
+     * @returns Promise<boolean> - true if a row with the email is displayed
+     */
+    async isCustomerRowExists(email: string): Promise<boolean> {
         try {
-            const row = this.customerRows.filter({ hasText: email }).first();
-            await row.locator('a[title="Edit"]').first().click();
-            await this.page.waitForURL('**route=customer/customer.form**');
-            return new AdminCustomerPage(this.page);
+            const row = this.customersTable.locator('tbody tr', { hasText: email });
+            await row.first().waitFor({ state: 'visible', timeout: 5000 });
+            return await row.first().isVisible();
         } catch (error) {
-            console.log(`Error opening customer '${email}' in admin: ${error}`);
-            throw error;
+            console.log(`Error checking customer row: ${error}`);
+            return false;
+        }
+    }
+
+    /**
+     * Gets the row content for the given email
+     * @param email - The email to locate
+     * @returns Promise<string> - The full row text
+     */
+    async getCustomerRowText(email: string): Promise<string> {
+        const row = this.customersTable.locator('tbody tr', { hasText: email }).first();
+        return (await row.textContent()) ?? '';
+    }
+
+    /**
+     * Opens the customer record for the given email
+     * @param email - The email of the customer to open
+     */
+    async clickEditCustomer(email: string): Promise<void> {
+        const row = this.customersTable.locator('tbody tr', { hasText: email }).first();
+        await row.locator('a[href*="customer/customer/edit"]').click();
+    }
+
+    /**
+     * Checks if a "No results" alert is displayed
+     * @returns Promise<boolean> - true if the alert is visible
+     */
+    async isNoResultsAlertVisible(): Promise<boolean> {
+        try {
+            return await this.noResultsAlert.isVisible();
+        } catch (error) {
+            console.log(`Error checking no results alert: ${error}`);
+            return false;
         }
     }
 }
