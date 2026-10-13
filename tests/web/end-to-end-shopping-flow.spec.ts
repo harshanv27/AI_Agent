@@ -26,7 +26,7 @@ import { test, expect } from '../../fixtures/pageFixtures';
 import { RandomDataUtil } from '../../utils/dataGenerator';
 import { Helper } from '../../utils/helper';
 
-test('End-to-End Shopping Flow @master @end-to-end', async ({ homePage, registerPage, loginPage, accountPage, productPage, cartPage }) => {
+test('End-to-End Shopping Flow @master @e2e', async ({ homePage, registerPage, loginPage, accountPage, productPage, cartPage }) => {
 
     // Randomly generated unique customer data
     const user = RandomDataUtil.generateUserPayload();
