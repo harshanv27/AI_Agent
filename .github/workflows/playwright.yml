@@ -1,5 +1,5 @@
-#To run manually: go to your repo → Actions → Playwright Tests → Run workflow → choose 
-#your parameters → Run.
+#To run manually: go to your repo → Actions → Playwright Tests → Run workflow → choose your parameters → Run.
+
 name: Playwright Tests
 
 on:
@@ -46,7 +46,7 @@ jobs:
       - name:  Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+        node-version: lts/*
       - name: Install Dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -72,18 +72,17 @@ jobs:
           name: playwright-report
           path: reports/
           retention-days: 30
-
-- name: Upload Custom Report
-if: always()
-uses: actions/upload-artifact@v4
-with:
-name: custom-report
-path: custom-report/
-retention-days: 30
-- name: Upload Allure Results
-if: always()
-uses: actions/upload-artifact@v4
-with:
-name: allure-results
-path: allure-results/
-retention-days: 30
+      - name: Upload Custom Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: custom-report
+          path: custom-report/
+          retention-days: 30
+          - name: Upload Allure Results
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+          name: allure-results
+          path: allure-results/
+          retention-days: 30
