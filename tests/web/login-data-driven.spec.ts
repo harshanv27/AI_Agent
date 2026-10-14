@@ -23,7 +23,7 @@ interface LoginDataRow {
     expected: string;
 }
 
-const loginData: LoginDataRow[] = DataProvider.readJson(path.resolve(__dirname, '../../testdata/opencart_logindata.json'));
+const loginData: LoginDataRow[] = DataProvider.readJson(path.resolve(__dirname, '../../testdata/logindata.json'));
 
 loginData.forEach((data, index) => {
     test(`Login Data Driven - ${data.testName} [row ${index + 1}] @datadriven @master @web`, async ({ homePage, loginPage, myAccountPage }) => {

@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { parse } from 'csv-parse/sync';
 import * as XLSX from 'xlsx';
+import * as path from 'path';
 
 export class DataProvider {
 
